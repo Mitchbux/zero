@@ -1,0 +1,17 @@
+{
+  "name": "zeroanim",
+  "version": "0.1.0",
+  "description": "ZeroJS Animation Framework — DSL-driven, Bun + Chromium + ffmpeg pipeline",
+  "type": "module",
+  "scripts": {
+    "hello": "bun run zero-anim.js examples/hello.anim",
+    "countdown": "bun run zero-anim.js examples/countdown.anim",
+    "renderer": "bun run zero-anim.js --renderer"
+  },
+  "bin": {
+    "zeroanim": "./zero-anim.js"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.1.0"
+  }
+}

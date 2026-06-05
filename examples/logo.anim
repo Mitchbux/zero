@@ -1,0 +1,123 @@
+# ──────────────────────────────────────────────────────────────────────
+# logo.anim  —  Zero Animation Framework
+#
+# "ZERO" text rendered as stroke-only outlines (white on black) via the
+# Canvas 2D API, then fed as a WebGL texture to a GLSL fragment shader
+#
+# Effect timeline:
+#   0.0 – 0.8 s   text fades in clean
+#   0.8 – 1.5 s   clean hold with subtle CRT scanline flash
+#   1.5 – 5.5 s   progressive block corruption, chroma aberration,
+#                 horizontal row-slide, garbage macroblocks
+#   5.0 – 6.0 s   final disintegration — blocks black out / scatter
+# ──────────────────────────────────────────────────────────────────────
+
+Animation (
+  title "Logo",
+  fps "24",
+  width "1280",
+  height "720",
+  duration "6.0",
+  background "#000000",
+
+  shader (
+    x "0",
+    y "0",
+    width "1280",
+    height "720",
+    radius "0",
+
+    # Canvas 2D pre-render: stroke-only "ZERO" text uploaded as u_texture.
+    # source_font uses Canvas font shorthand; source_stroke_width is lineWidth.
+    source_text "ZERO",
+    source_font "bold 330px Impact",
+    source_stroke_width "10",
+
+    glsl "precision highp float;
+
+    uniform sampler2D u_texture;
+    uniform vec2      u_resolution;
+    uniform float     u_time;
+    varying vec2      v_texCoord;
+
+    // ── Hash / pseudo-random ──────────────────────
+    float hash(vec2 p) {
+        p = fract(p * vec2(234.34, 435.345));
+        p += dot(p, p + 34.23);
+        return fract(p.x * p.y);
+    }
+
+    void main() {
+        // v_texCoord is NDC [-1,1]; convert to UV [0,1].
+        vec2 uv = v_texCoord * 0.5 + 0.5;
+        float t = u_time;
+
+        // ── Animation phases ─────────────────────
+        float fadeIn  = smoothstep(0.0,  0.8,  t);
+        float glitchT = smoothstep(1.5,  5.5,  t);
+        float finalT  = smoothstep(5.0,  6.0,  t);
+
+        // ── Macroblock grid (28 px blocks) ───────
+        float bpx = 28.0;
+        vec2  bsz = vec2(bpx) / u_resolution;
+        vec2  bIdx = floor(uv / bsz);
+
+        float h1 = hash(bIdx);
+        float h2 = hash(bIdx + vec2(7.31, 0.0));
+        float h3 = hash(bIdx * 1.9 + vec2(3.7, 1.1));
+        float h4 = hash(bIdx + vec2(17.1, 3.9));
+
+        // Each block activates at a random time in the corruption window
+        float blockBreak = smoothstep(h1 * 0.82, h1 * 0.82 + 0.1, glitchT);
+
+        // ── Row-level horizontal slide ────────────
+        // Simulates H.264 whole-scanline prediction errors
+        float rowIdx   = floor(uv.y / bsz.y);
+        float rowSeed  = hash(vec2(rowIdx, floor(t * 7.0)));
+        float rowSlide = (rowSeed * 2.0 - 1.0) * 0.11
+                       * smoothstep(0.3, 0.7, glitchT);
+
+        // ── Block-level drift ─────────────────────
+        float bDX = (h2 * 2.0 - 1.0) * 0.075 * blockBreak;
+        float bDY = (h3 * 2.0 - 1.0) * 0.013 * blockBreak;
+
+        vec2 distUV = uv + vec2(bDX + rowSlide, bDY);
+
+        // ── Chroma aberration ─────────────────────
+        // R and B channels diverge horizontally as corruption grows.
+        // On white stroke outlines this produces vivid cyan/red fringing.
+        float caAmt = (glitchT * 0.018 + finalT * 0.05) * blockBreak;
+
+        float texR = texture2D(u_texture,
+            clamp(distUV + vec2( caAmt, 0.0), 0.001, 0.999)).r;
+        float texG = texture2D(u_texture,
+            clamp(distUV,                     0.001, 0.999)).g;
+        float texB = texture2D(u_texture,
+            clamp(distUV - vec2( caAmt, 0.0), 0.001, 0.999)).b;
+
+        vec3 logo = vec3(texR, texG, texB);
+
+        vec3 color = logo;
+
+        // ── Final blackout ────────────────────────
+        // Blocks drop to black at random times in the final second.
+        float blkOut = step(0.52, h4) * finalT;
+        color = mix(color, vec3(0.0), blkOut);
+
+        // ── CRT scanlines ─────────────────────────
+        float scan = 0.92 + 0.08 * sin(uv.y * u_resolution.y * 3.14159);
+        color *= scan;
+
+        // ── Pixel-thin scan flash (pre-corruption only) ───────────────
+        float pxFlash = step(0.997,
+            fract(uv.y * u_resolution.y * 0.5 + t * 25.0))
+            * (1.0 - glitchT) * 0.4;
+        color += pxFlash;
+
+        // ── Fade in ───────────────────────────────
+        color *= fadeIn;
+
+        gl_FragColor = vec4(color, 1.0);
+    }"
+  )
+)

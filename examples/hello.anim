@@ -1,0 +1,95 @@
+# ─────────────────────────────────────────────
+# hello.anim  —  Zero Animation Framework
+# Neon-space theme with glowing text and ambient light
+# ─────────────────────────────────────────────
+
+Animation (
+  title "Hello World",
+  fps "24",
+  width "1280",
+  height "720",
+  duration "5.0",
+  background "#06060f",
+
+  # Ambient glow orb — large soft circle behind everything
+  circle (
+    cx "50%",
+    cy "45%",
+    r "320",
+    color "rgba(233,69,96,0.03)",
+    fadein "0.0" "2.5",
+    fadeout "4.0" "5.0",
+    style.box_shadow "0 0 180px 100px rgba(233,69,96,0.10), 0 0 350px 180px rgba(76,201,240,0.04)"
+  )
+
+  # Secondary glow orb (blue)
+  circle (
+    cx "62%",
+    cy "60%",
+    r "200",
+    color "rgba(76,201,240,0.02)",
+    fadein "0.5" "2.5",
+    fadeout "4.0" "5.0",
+    style.box_shadow "0 0 120px 60px rgba(76,201,240,0.08), 0 0 240px 120px rgba(76,201,240,0.03)"
+  )
+
+  # Main headline — neon pink glow
+  text (
+    content "Hello, World!",
+    x "50%",
+    y "41%",
+    color "#ff2d55",
+    size "92",
+    font "Georgia",
+    weight "700",
+    align "center",
+    fadein "0.0" "1.2",
+    fadeout "3.8" "5.0",
+    style.filter "drop-shadow(0 0 20px rgba(255,45,85,1)) drop-shadow(0 0 50px rgba(255,45,85,0.6)) drop-shadow(0 0 100px rgba(255,45,85,0.25))",
+    style.letter_spacing "3px"
+  )
+
+  # Subtitle — cyan glow
+  text (
+    content "Zero Animation Framework",
+    x "50%",
+    y "56%",
+    color "#a8dadc",
+    size "28",
+    font "Georgia",
+    weight "400",
+    align "center",
+    fadein "0.6" "1.8",
+    fadeout "3.8" "5.0",
+    style.filter "drop-shadow(0 0 12px rgba(168,218,220,0.9)) drop-shadow(0 0 35px rgba(76,201,240,0.5))",
+    style.letter_spacing "6px"
+  )
+
+  # Glowing accent line
+  rect (
+    x "540",
+    y "64%",
+    width "200",
+    height "2",
+    color "#ff2d55",
+    fadein "1.2" "2.0",
+    fadeout "3.8" "5.0",
+    style.box_shadow "0 0 10px #ff2d55, 0 0 28px rgba(255,45,85,0.8), 0 0 60px rgba(255,45,85,0.35)",
+    style.border_radius "2px"
+  )
+
+  # Tiny brand tagline below line
+  text (
+    content "v 0.1",
+    x "50%",
+    y "72%",
+    color "rgba(168,218,220,0.35)",
+    size "14",
+    font "Georgia",
+    weight "400",
+    align "center",
+    fadein "1.8" "2.8",
+    fadeout "3.8" "5.0",
+    style.letter_spacing "8px"
+  )
+)
